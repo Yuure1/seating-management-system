@@ -5,8 +5,11 @@
 #include <math.h> // for fmod
 #include <vector> // for list
 
-int Grid::modifier = 1; // default value
+// to refresh control panel after clearing screen
+#include "ctrlPanel.h"
 
+int Grid::modifier = 1; // default value
+bool Grid::seatCreated = false;
 bool isCreated = false;
 
 //#include "start.h" // header or else "multiple definition error"
@@ -16,7 +19,7 @@ extern int winSizeY;
 // from start.cpp
 extern SDL_Renderer *renderer; // to render with draw()
 extern SDL_Event event;
-extern int ctrlPanelH;
+extern int ctrlPanelHeight;
 
 // from mouse.cpp
 extern SDL_Point mousePos;
@@ -75,13 +78,30 @@ std::vector<Grid> unit;
 
 void Grid::draw() { 
     if(modChanged) {
+        // put destroying code here
+        if(unit.size() != 0) { // if there are units already existing beforehand, then destroy them
+            std::cout << "vector cleared of all elements" << "\n";
+
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+
+            if(!SDL_RenderClear(renderer)) {
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+                ControlPanel::showRect();
+            }
+            
+            // clear all old rects from here
+            unit.clear(); // clear the vector first
+        }
+
+        std::cout << "current size of vector is: " << unit.size() << "\n";
+
         std::cout << "mod changed to: " << modifier << "\n"; // debug msg
 
         int i = factors.size() - modifier;
-        int r = (winSizeY - ctrlPanelH) / factors[i];
+        int r = (winSizeY - ctrlPanelHeight) / factors[i];
         int c = winSizeX / factors[i];
 
-        std::cout << c << ", " << r << "\n";
+        // std::cout << c << ", " << r << "\n";
 
         // CREATE OBJECTS
         for(int j=0; j<r; ++j) {
@@ -97,12 +117,22 @@ void Grid::draw() {
         } // outer for 
 
         modChanged = false;
+        std::cout << "current size of vector is: " << unit.size() << "\n";
     } 
 } // end of draw
 
 void Grid::action() {
     // CHECK IF MOUSE IS HOVERING OVER UNITS
     for(int i=0; i<unit.size(); ++i) {
+        // code here to check if there is at least one object that is created
+        /* if(unit[i].isCreated) {
+            Grid::seatCreated = true;
+        } else if(!unit[i].isCreated) {
+            Grid::seatCreated = false;
+        } 
+
+        std::cout << "SEAT CREATED STATUS: " << seatCreated << "\n"; */
+
         if( SDL_PointInRect(&mousePos, &unit[i].rect) ) {
             // IF CLICKED
             if( event.type == SDL_MOUSEBUTTONDOWN ) {
@@ -115,6 +145,7 @@ void Grid::action() {
                         SDL_RenderDrawRect(renderer, &unit[i].rect);
 
                         unit[i].isCreated = true;
+
                     } else {
                         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
                         SDL_RenderFillRect(renderer, &unit[i].rect);
@@ -148,7 +179,9 @@ void Grid::action() {
 
 // mutator and accessor methods
 void Grid::setModifier(int val) { 
-    modifier = val; 
-    modChanged = true;
+    if( (val > 0) && !(val > factors.size()) ) {
+        modifier = val; 
+        modChanged = true;
+    }
 } // can i access normally after defining(?)
 int Grid::getModifier() { return modifier; }

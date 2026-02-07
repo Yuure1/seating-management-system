@@ -10,6 +10,7 @@ void getCommonFactors(int num1, int num2);
 class Grid {
 private:
     static int modifier;
+    static bool seatCreated; // for confirmation window
     SDL_Rect rect;
     bool isCreated;
     bool isEmpty;

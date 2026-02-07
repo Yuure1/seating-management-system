@@ -1,8 +1,15 @@
 #pragma once
 
+#include <iostream> // for string arg
+#include "SDL.h"
+
 class Text {
 private:
-    int size;
+    SDL_Surface *surface = NULL;
+    SDL_Texture *texture = NULL;
+    SDL_Color color;
+    SDL_Rect rect;
 public:
-    void display();
+    static void fontInit();
+    void placeText(std::string msg, std::string fontPath, int xPos, int yPos, SDL_Color color, int size);
 };

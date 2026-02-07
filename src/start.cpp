@@ -2,6 +2,9 @@
 
 #include "grid.h" // for testing class functions
 #include "mouse.h"
+#include "text.h"
+#include "ctrlPanel.h"
+#include "button.h"
 
 #include <iostream> // cout
 #include "SDL.h" // window creation
@@ -18,7 +21,10 @@ int monitor = 0;
 int winSizeX;
 int winSizeY;
 int rRate; // refresh rate
-int ctrlPanelH = 200; // control panel, 200px height
+// int ctrlPanelH = 200; // control panel, 200px height
+
+// from ctrlPanel.cpp
+extern int ctrlPanelHeight;
 
 std::string programName = "Seating Manager ", programVer = "v0.0.0"; 
 std::string title = programName + programVer;
@@ -66,20 +72,34 @@ void Start::createWindow() {
     } 
 } // end of createWindow
 
+// BUTTONS FROM CTRLPANEL.CPP
+extern Button b;
+extern Button c;
+
 void Start::queueEvent() {
     // functions to only be called once
-    getCommonFactors(winSizeX, (winSizeY - ctrlPanelH));
+    getCommonFactors( winSizeX, (winSizeY - ctrlPanelHeight) );
+    Text::fontInit(); // testing TEXT
+    ControlPanel::showRect();
 
+    //Text t;
+    
     while(true) {
         SDL_RenderPresent(renderer); // render 
-
+        
         // functions to be constantly called
         Mouse::getPos();
         Grid::draw();
 
+        //t.placeText("Hello world", zig, 980, 20, red, 50); // testing TEXT
+
         if( SDL_PollEvent(&event) ) { // pass mem address of event
             // functions with event variable
             Grid::action();
+
+            // CHECK FOR BUTTON INTERACTIONS
+            b.action( Grid::setModifier, (Grid::getModifier() + 1) ); // increase number of boxes
+            c.action( Grid::setModifier, (Grid::getModifier() - 1) );
 
             if(event.type == SDL_QUIT) { // if user presses x button
                 SDL_DestroyWindow(window);
